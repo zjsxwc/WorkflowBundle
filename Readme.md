@@ -28,7 +28,7 @@
 2）给每个字段添加 “node名字+R/W”  的 php8 attribute，表示这个字段会在对应的node节点出现让用户展示或填写，
 每个字段可以有多个attribute，如果这个字段没有任何attribute就不可能出现在任何node节点上，让用户看到。
 
-2.0)为了嵌入丰云汇店员系统，登录人为店员，每个店铺都有独立工作流，所以工作流需要 记录shopId，
+2.0)为了嵌入店员系统，登录人为店员，每个店铺都有独立工作流，所以工作流需要 记录shopId，
 工作流要有一个 唯一的 中文 workflowName
 工作流要有一个 字段 currentFinishedNode 表示当前处于哪个已经完成的Node，也就是transitions 数组的key，多分支时使用 "C&D" "G|H" 来表示
 对于已经结束的工作流 要记录 完成时间 finishedTime
