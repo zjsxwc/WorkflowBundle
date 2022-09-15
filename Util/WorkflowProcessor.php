@@ -260,6 +260,7 @@ afterForkedNodesFinishedNextJunctionNodeAssignedStaffId = 123
         }
 
 
+
         if (
             in_array($node, AbstractWorkflow::getNormalOneNextNodeList($workflow))
         ) {
@@ -275,29 +276,51 @@ afterForkedNodesFinishedNextJunctionNodeAssignedStaffId = 123
             $assignedStaffId = $perNextNodeDesc["assignedStaffId"];
             $newNodeAssignment = new NodeAssignment();
 
-            $newNodeAssignment->setAssignedNode($nextNode)
-                ->setAssignedStaffId($assignedStaffId)
-                ->setAssignedTime(time())
+            $this->checkNextNodeIsAllowed($node, $nextNode);
 
-                ->setIsWorkflowLauncher(false)
-                ->setNodeStatus(NodeAssignment::STATUS_NEW)
-                ->setShopId($workflow->getShopId())
-                ->setSubmittedData(null)
-                ->setWorkflowClassName(get_class($workflow))
-                ->setWorkflowId($workflow->getId())
-                ->setPrevNodeAssignmentId($currentNodeAssignment->getId())
+            $workflow->setCurrentFinishedNode($node)
+                ->setCurrentAssignedStaffId($currentStaffId)
             ;
-            $this->nodeAssignmentRepository->storeNodeAssignment($currentNodeAssignment);
+
+            if ($nextNode === "END") {
+                $workflow->setFinishedTime(time());
+            } else {
+                $newNodeAssignment->setAssignedNode($nextNode)
+                    ->setAssignedStaffId($assignedStaffId)
+                    ->setAssignedTime(time())
+
+                    ->setIsWorkflowLauncher(false)
+                    ->setNodeStatus(NodeAssignment::STATUS_NEW)
+                    ->setShopId($workflow->getShopId())
+                    ->setSubmittedData(null)
+                    ->setWorkflowClassName(get_class($workflow))
+                    ->setWorkflowId($workflow->getId())
+                    ->setPrevNodeAssignmentId($currentNodeAssignment->getId())
+                ;
+                $this->nodeAssignmentRepository->storeNodeAssignment($currentNodeAssignment);
+            }
+
+            $this->entityManager->persist($workflow);
+            $this->entityManager->flush($workflow);
         }
 
         if (
             in_array($node, AbstractWorkflow::getForkStartNodeList($workflow))
         ) {
+            $workflow->setCurrentFinishedNode($node)
+                ->setCurrentAssignedStaffId($currentStaffId)
+            ;
+            $this->entityManager->persist($workflow);
+            $this->entityManager->flush($workflow);
+
             //分叉开始节点 需要分配 nextNodeDesc 与 afterForkedNodesFinishedNextJunctionNodeAssignedStaffId，
             //对nextNodeDesc中的人创建nodeAssignment，
             foreach ($nextNodeDesc as $perNextNodeDesc) {
                 /** @var string $nextNode */
                 $nextNode = $perNextNodeDesc["nextNode"];
+
+                $this->checkNextNodeIsAllowed($node, $nextNode);
+
                 /** @var string $assignedStaffId */
                 $assignedStaffId = $perNextNodeDesc["assignedStaffId"];
                 $newNodeAssignment = new NodeAssignment();
@@ -338,7 +361,7 @@ afterForkedNodesFinishedNextJunctionNodeAssignedStaffId = 123
             $prevNodeAssignment = null;
             $currentInForkingNodeType = AbstractWorkflow::getInForkingNodeType($workflow, $node);
             if (in_array($currentInForkingNodeType,["&","&n"])) {
-                //must todo 获取所有分叉兄弟节点 是否都已经完成，如果都完成了 就给afterForkedNodesFinishedNextJunctionNodeAssignedStaffId分配 创建nodeAssignment，
+                //获取所有分叉兄弟节点 是否都已经完成，如果都完成了 就给afterForkedNodesFinishedNextJunctionNodeAssignedStaffId分配 创建nodeAssignment，
                 $isAllSiblingNodeAssignmentFinished = true;
                 foreach ($allSiblingNodeAssignmentList as $perSiblingNodeAssignment) {
                     if ($perSiblingNodeAssignment->getId() !== $currentNodeAssignment->getId()) {
@@ -405,6 +428,11 @@ afterForkedNodesFinishedNextJunctionNodeAssignedStaffId = 123
             }
         }
 
+    }
+
+    private function checkNextNodeIsAllowed($currentNode, $nextNode)
+    {
+        //must todo
     }
 
 }

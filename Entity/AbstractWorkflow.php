@@ -290,9 +290,9 @@ abstract class  AbstractWorkflow
     /**
      * @var string
      *
-     * @ORM\Column(name="assigned_staff_id", type="string", length=255)
+     * @ORM\Column(name="current_assigned_staff_id", type="string", length=255)
      */
-    public $assignedStaffId;
+    public $currentAssignedStaffId;
 
     /**
      * @var string
@@ -358,18 +358,18 @@ abstract class  AbstractWorkflow
     /**
      * @return string
      */
-    public function getAssignedStaffId()
+    public function getCurrentAssignedStaffId()
     {
-        return $this->assignedStaffId;
+        return $this->currentAssignedStaffId;
     }
 
     /**
-     * @param string $assignedStaffId
+     * @param string $currentAssignedStaffId
      * @return AbstractWorkflow
      */
-    public function setAssignedStaffId($assignedStaffId)
+    public function setCurrentAssignedStaffId($currentAssignedStaffId)
     {
-        $this->assignedStaffId = $assignedStaffId;
+        $this->currentAssignedStaffId = $currentAssignedStaffId;
         return $this;
     }
 
